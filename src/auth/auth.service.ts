@@ -1,8 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
-import * as bcrypt from 'bcrypt';
-import { User } from 'src/users/schemas/user.schema';
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { UsersService } from "../users/users.service";
+import * as bcrypt from "bcrypt";
+import { User } from "src/users/schemas/user.schema";
 
 @Injectable()
 export class AuthService {
@@ -19,12 +19,12 @@ export class AuthService {
       const user = await this.usersService.findByEmail(email);
 
       if (!user?.password) {
-        throw new UnauthorizedException('Invalid credentials');
+        throw new UnauthorizedException("Invalid credentials");
       }
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
-        throw new UnauthorizedException('Invalid credentials');
+        throw new UnauthorizedException("Invalid credentials");
       }
 
       return user.toObject() as Partial<User>;
@@ -44,7 +44,7 @@ export class AuthService {
       const access_token = this.jwtService.sign(payload);
 
       if (!user.name || !user.email || !user._id || !access_token) {
-        throw new UnauthorizedException('Invalid credentials');
+        throw new UnauthorizedException("Invalid credentials");
       }
 
       return {
@@ -57,7 +57,7 @@ export class AuthService {
       };
     } catch (error) {
       console.error(`Error logging in: ${error.message}`, error.stack);
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
   }
 
@@ -72,7 +72,7 @@ export class AuthService {
       return this.login(user);
     } catch (error) {
       console.error(`Error registering user: ${error.message}`, error.stack);
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
   }
 }

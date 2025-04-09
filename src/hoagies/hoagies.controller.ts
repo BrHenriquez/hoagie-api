@@ -9,14 +9,15 @@ import {
   Query,
   UseGuards,
   Req,
-} from '@nestjs/common';
-import { HoagiesService } from './hoagies.service';
-import { Hoagie } from './schemas/hoagie.schema';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RequestWithUser } from '../core/decorators/current-user.decorator';
-import { UnauthorizedException } from '@nestjs/common';
+  NotFoundException,
+} from "@nestjs/common";
+import { HoagiesService } from "./hoagies.service";
+import { Hoagie } from "./schemas/hoagie.schema";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
+import { RequestWithUser } from "../core/decorators/current-user.decorator";
+import { UnauthorizedException } from "@nestjs/common";
 
-@Controller('hoagies')
+@Controller("hoagies")
 export class HoagiesController {
   constructor(private readonly hoagiesService: HoagiesService) {}
 
@@ -27,7 +28,6 @@ export class HoagiesController {
     createHoagieDto: { name: string; ingredients: string[]; picture?: string },
     @Req() req: RequestWithUser,
   ): Promise<Hoagie> {
-    console.log('createHoagieDto', createHoagieDto, req);
     return this.hoagiesService.create({
       ...createHoagieDto,
       creator: req.user._id,
@@ -36,21 +36,26 @@ export class HoagiesController {
 
   @Get()
   async findAll(
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
+    @Query("page") page: string = "1",
+    @Query("limit") limit: string = "10",
+    @Query("searchTerm") searchTerm: string,
   ): Promise<{ data: Hoagie[]; total: number }> {
-    return this.hoagiesService.findAll(parseInt(page), parseInt(limit));
+    return this.hoagiesService.findAll(
+      parseInt(page),
+      parseInt(limit),
+      searchTerm,
+    );
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<Hoagie> {
+  @Get(":id")
+  async findOne(@Param("id") id: string): Promise<Hoagie> {
     return this.hoagiesService.findOne(id);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @UseGuards(JwtAuthGuard)
   async update(
-    @Param('id') id: string,
+    @Param("id") id: string,
     @Body() updateHoagieDto: Partial<Hoagie>,
     @Req() req: RequestWithUser,
   ): Promise<Hoagie> {
@@ -62,15 +67,15 @@ export class HoagiesController {
         (c) => c._id.toString() === req.user._id.toString(),
       )
     ) {
-      throw new UnauthorizedException('Unauthorized');
+      throw new UnauthorizedException("Unauthorized");
     }
     return this.hoagiesService.update(id, updateHoagieDto);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @UseGuards(JwtAuthGuard)
   async remove(
-    @Param('id') id: string,
+    @Param("id") id: string,
     @Req() req: RequestWithUser,
   ): Promise<Hoagie> {
     // Verify that the user is the creator
@@ -79,37 +84,41 @@ export class HoagiesController {
     const userId = req.user._id.toString();
 
     if (creatorId !== userId) {
-      throw new UnauthorizedException('Unauthorized');
+      throw new UnauthorizedException("Unauthorized");
     }
     return this.hoagiesService.remove(id);
   }
 
-  @Post(':id/collaborators')
+  @Post(":id/collaborators")
   @UseGuards(JwtAuthGuard)
   async addCollaborator(
-    @Param('id') id: string,
-    @Body('userId') userId: string,
+    @Param("id") id: string,
+    @Body("collaboratorId") collaboratorId: string,
     @Req() req: RequestWithUser,
   ): Promise<Hoagie> {
     // Verify that the user is the creator
     const hoagie = await this.hoagiesService.findOne(id);
     if (hoagie.creator?._id.toString() !== req.user._id.toString()) {
-      throw new UnauthorizedException('Unauthorized');
+      throw new UnauthorizedException("Unauthorized");
     }
-    return this.hoagiesService.addCollaborator(id, userId);
+
+    if (!collaboratorId) {
+      throw new NotFoundException("Collaborator not found");
+    }
+    return this.hoagiesService.addCollaborator(id, collaboratorId);
   }
 
-  @Delete(':id/collaborators/:userId')
+  @Delete(":id/collaborators/:userId")
   @UseGuards(JwtAuthGuard)
   async removeCollaborator(
-    @Param('id') id: string,
-    @Param('userId') userId: string,
+    @Param("id") id: string,
+    @Param("userId") userId: string,
     @Req() req: RequestWithUser,
   ): Promise<Hoagie> {
     // Verify that the user is the creator
     const hoagie = await this.hoagiesService.findOne(id);
     if (hoagie.creator._id.toString() !== req.user._id.toString()) {
-      throw new UnauthorizedException('Unauthorized');
+      throw new UnauthorizedException("Unauthorized");
     }
     return this.hoagiesService.removeCollaborator(id, userId);
   }

@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Comment } from './schemas/comment.schema';
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { Comment } from "./schemas/comment.schema";
 
 @Injectable()
 export class CommentsService {
@@ -19,7 +19,7 @@ export class CommentsService {
       return createdComment.save();
     } catch (error) {
       console.error(`Error creating comment: ${error.message}`, error.stack);
-      throw new Error('Failed to create comment');
+      throw new Error("Failed to create comment");
     }
   }
 
@@ -27,7 +27,7 @@ export class CommentsService {
     try {
       const allComments = await this.commentModel
         .find({ hoagie: hoagieId })
-        .populate('user', '-password')
+        .populate("user", "-password")
         .sort({ createdAt: +1 })
         .exec();
 
@@ -37,14 +37,14 @@ export class CommentsService {
         `Error finding all comments by hoagie: ${error.message}`,
         error.stack,
       );
-      throw new Error('Failed to find all comments by hoagie');
+      throw new Error("Failed to find all comments by hoagie");
     }
   }
   async findOne(id: string): Promise<Comment | null> {
     try {
       const comment = await this.commentModel
         .findById(id)
-        .populate('user', '-password')
+        .populate("user", "-password")
         .exec();
 
       if (!comment) {
@@ -54,7 +54,7 @@ export class CommentsService {
       return comment;
     } catch (error) {
       console.error(`Error finding comment: ${error.message}`, error.stack);
-      throw new Error('Failed to find comment');
+      throw new Error("Failed to find comment");
     }
   }
 
@@ -65,17 +65,17 @@ export class CommentsService {
     try {
       const updatedComment = await this.commentModel
         .findByIdAndUpdate(id, updateCommentDto, { new: true })
-        .populate('user', '-password')
+        .populate("user", "-password")
         .exec();
 
       if (!updatedComment) {
-        throw new Error('Comment not found');
+        throw new Error("Comment not found");
       }
 
       return updatedComment;
     } catch (error) {
       console.error(`Error updating comment: ${error.message}`, error.stack);
-      throw new Error('Failed to update comment');
+      throw new Error("Failed to update comment");
     }
   }
 
@@ -88,7 +88,7 @@ export class CommentsService {
       return deletedComment || null;
     } catch (error) {
       console.error(`Error removing comment: ${error.message}`, error.stack);
-      throw new Error('Failed to remove comment');
+      throw new Error("Failed to remove comment");
     }
   }
 
@@ -100,7 +100,7 @@ export class CommentsService {
         `Error counting comments by hoagie: ${error.message}`,
         error.stack,
       );
-      throw new Error('Failed to count comments by hoagie');
+      throw new Error("Failed to count comments by hoagie");
     }
   }
 }

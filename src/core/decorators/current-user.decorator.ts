@@ -1,6 +1,6 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { User } from '../../users/schemas/user.schema';
-import { Request } from 'express';
+import { createParamDecorator, ExecutionContext } from "@nestjs/common";
+import { User } from "../../users/schemas/user.schema";
+import { Request } from "express";
 
 export interface RequestWithUser extends Request {
   user: User & { _id: string };

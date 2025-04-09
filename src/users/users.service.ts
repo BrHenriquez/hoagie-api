@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User } from './schemas/user.schema';
-import * as bcrypt from 'bcrypt';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { User } from "./schemas/user.schema";
+import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class UsersService {
@@ -24,19 +24,39 @@ export class UsersService {
       return createdUser.save();
     } catch (error) {
       console.error(`Error creating user: ${error.message}`, error.stack);
-      throw new Error('Failed to create user');
+      throw new Error("Failed to create user");
     }
   }
 
-  async findAll(): Promise<User[]> {
-    return this.userModel.find().exec();
+  async findAll(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ data: User[]; total: number }> {
+    try {
+      const skip = (page - 1) * limit;
+
+      const [data, total] = await Promise.all([
+        this.userModel
+          .find()
+          .select("-password")
+          .skip(skip)
+          .limit(limit)
+          .exec(),
+        this.userModel.countDocuments().exec(),
+      ]);
+
+      return { data, total };
+    } catch (error) {
+      console.error(`Error finding all users: ${error.message}`, error.stack);
+      throw new Error("Failed to find all users");
+    }
   }
 
   async findOne(id: string): Promise<User> {
     try {
       const user = await this.userModel.findById(id).exec();
       if (!user) {
-        throw new NotFoundException('User not found');
+        throw new NotFoundException("User not found");
       }
       return user;
     } catch (error) {
@@ -44,7 +64,7 @@ export class UsersService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new Error('Failed to find user');
+      throw new Error("Failed to find user");
     }
   }
 
@@ -57,7 +77,7 @@ export class UsersService {
         `Error finding user by email: ${error.message}`,
         error.stack,
       );
-      throw new Error('Failed to find user by email');
+      throw new Error("Failed to find user by email");
     }
   }
 
@@ -70,7 +90,7 @@ export class UsersService {
         .findByIdAndUpdate(id, updateUserDto, { new: true })
         .exec();
       if (!updatedUser) {
-        throw new NotFoundException('User not found');
+        throw new NotFoundException("User not found");
       }
       return updatedUser;
     } catch (error) {
@@ -78,7 +98,7 @@ export class UsersService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new Error('Failed to update user');
+      throw new Error("Failed to update user");
     }
   }
 
@@ -86,7 +106,7 @@ export class UsersService {
     try {
       const deletedUser = await this.userModel.findByIdAndDelete(id).exec();
       if (!deletedUser) {
-        throw new NotFoundException('User not found');
+        throw new NotFoundException("User not found");
       }
       return deletedUser;
     } catch (error) {
@@ -94,7 +114,7 @@ export class UsersService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new Error('Failed to remove user');
+      throw new Error("Failed to remove user");
     }
   }
 }

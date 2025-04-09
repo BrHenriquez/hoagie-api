@@ -4,8 +4,8 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
-} from '@nestjs/common';
-import { Response } from 'express';
+} from "@nestjs/common";
+import { Response } from "express";
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -14,19 +14,19 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message: string | object = 'Internal server error';
+    let message: string | object = "Internal server error";
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
-      if (typeof exceptionResponse === 'string') {
+      if (typeof exceptionResponse === "string") {
         message = exceptionResponse;
       } else if (
-        typeof exceptionResponse === 'object' &&
+        typeof exceptionResponse === "object" &&
         exceptionResponse !== null &&
-        'message' in exceptionResponse &&
-        typeof exceptionResponse.message === 'string'
+        "message" in exceptionResponse &&
+        typeof exceptionResponse.message === "string"
       ) {
         message = exceptionResponse.message;
       } else {

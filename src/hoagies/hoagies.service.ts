@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Hoagie } from './schemas/hoagie.schema';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { Hoagie } from "./schemas/hoagie.schema";
 
 @Injectable()
 export class HoagiesService {
@@ -21,23 +21,36 @@ export class HoagiesService {
   async findAll(
     page: number = 1,
     limit: number = 10,
+    searchTerm?: string,
   ): Promise<{ data: Hoagie[]; total: number }> {
     try {
       const skip = (page - 1) * limit;
+      const searchRegex = searchTerm ? new RegExp(searchTerm, "i") : null;
+
+      const query = searchRegex
+        ? {
+            $or: [
+              { name: { $regex: searchRegex } },
+              { "creator.name": { $regex: searchRegex } },
+              { ingredients: { $regex: searchRegex } },
+            ],
+          }
+        : {};
+
       const [data, total] = await Promise.all([
         this.hoagieModel
-          .find()
-          .populate('creator', 'name email')
-          .populate('collaborators', 'name email')
+          .find(query)
+          .populate("creator", "name email")
+          .populate("collaborators", "name email")
           .skip(skip)
           .limit(limit)
           .exec(),
-        this.hoagieModel.countDocuments().exec(),
+        this.hoagieModel.countDocuments(query).exec(),
       ]);
       return { data, total };
     } catch (error) {
       console.error(`Error finding all hoagies: ${error.message}`, error.stack);
-      throw new Error('Failed to find all hoagies');
+      throw new Error("Failed to find all hoagies");
     }
   }
 
@@ -45,11 +58,11 @@ export class HoagiesService {
     try {
       const hoagie = await this.hoagieModel
         .findById(id)
-        .populate('creator', 'name email')
-        .populate('collaborators', 'name email')
+        .populate("creator", "name email")
+        .populate("collaborators", "name email")
         .exec();
       if (!hoagie) {
-        throw new NotFoundException('Hoagie not found');
+        throw new NotFoundException("Hoagie not found");
       }
       return hoagie;
     } catch (error) {
@@ -57,7 +70,7 @@ export class HoagiesService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new Error('Failed to find hoagie');
+      throw new Error("Failed to find hoagie");
     }
   }
 
@@ -65,11 +78,11 @@ export class HoagiesService {
     try {
       const updatedHoagie = await this.hoagieModel
         .findByIdAndUpdate(id, updateHoagieDto, { new: true })
-        .populate('creator', 'name email')
-        .populate('collaborators', 'name email')
+        .populate("creator", "name email")
+        .populate("collaborators", "name email")
         .exec();
       if (!updatedHoagie) {
-        throw new NotFoundException('Hoagie not found');
+        throw new NotFoundException("Hoagie not found");
       }
       return updatedHoagie;
     } catch (error) {
@@ -77,7 +90,7 @@ export class HoagiesService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new Error('Failed to update hoagie');
+      throw new Error("Failed to update hoagie");
     }
   }
 
@@ -85,7 +98,7 @@ export class HoagiesService {
     try {
       const removedHoagie = await this.hoagieModel.findByIdAndDelete(id).exec();
       if (!removedHoagie) {
-        throw new NotFoundException('Hoagie not found');
+        throw new NotFoundException("Hoagie not found");
       }
       return removedHoagie;
     } catch (error) {
@@ -93,23 +106,26 @@ export class HoagiesService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new Error('Failed to remove hoagie');
+      throw new Error("Failed to remove hoagie");
     }
   }
 
-  async addCollaborator(hoagieId: string, userId: string): Promise<Hoagie> {
+  async addCollaborator(
+    hoagieId: string,
+    collaboratorId: string,
+  ): Promise<Hoagie> {
     try {
       const updatedHoagie = await this.hoagieModel
         .findByIdAndUpdate(
           hoagieId,
-          { $addToSet: { collaborators: userId } },
+          { $addToSet: { collaborators: collaboratorId } },
           { new: true },
         )
-        .populate('creator', 'name email')
-        .populate('collaborators', 'name email')
+        .populate("creator", "name email")
+        .populate("collaborators", "name email")
         .exec();
       if (!updatedHoagie) {
-        throw new NotFoundException('Hoagie not found');
+        throw new NotFoundException("Hoagie not found");
       }
       return updatedHoagie;
     } catch (error) {
@@ -117,7 +133,7 @@ export class HoagiesService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new Error('Failed to add collaborator');
+      throw new Error("Failed to add collaborator");
     }
   }
 
@@ -129,11 +145,11 @@ export class HoagiesService {
           { $pull: { collaborators: userId } },
           { new: true },
         )
-        .populate('creator', 'name email')
-        .populate('collaborators', 'name email')
+        .populate("creator", "name email")
+        .populate("collaborators", "name email")
         .exec();
       if (!updatedHoagie) {
-        throw new NotFoundException('Hoagie not found');
+        throw new NotFoundException("Hoagie not found");
       }
       return updatedHoagie;
     } catch (error) {
@@ -144,7 +160,7 @@ export class HoagiesService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new Error('Failed to remove collaborator');
+      throw new Error("Failed to remove collaborator");
     }
   }
 }

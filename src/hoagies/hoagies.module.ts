@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Hoagie, HoagieSchema } from './schemas/hoagie.schema';
-import { HoagiesService } from './hoagies.service';
-import { HoagiesController } from './hoagies.controller';
+import { Module } from "@nestjs/common";
+import { MongooseModule } from "@nestjs/mongoose";
+import { Hoagie, HoagieSchema } from "./schemas/hoagie.schema";
+import { HoagiesService } from "./hoagies.service";
+import { HoagiesController } from "./hoagies.controller";
 
 @Module({
   imports: [
